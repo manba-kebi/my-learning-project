@@ -1,3 +1,15 @@
+# git操作
+
+1. git add .	                                         把新写/修改的所有文件，告诉Git
+2. git commit -m "写一句备注"           给文件拍个“版本快照”，永久保存
+3. git push                                             把本地保存的版本，上传到GitHub上
+4. git status                                           查看现在文件有没有改动、有没有保存
+5. git log                                                 查看所有的提交历史
+6. git pull                                                把GitHub上的最新内容拉到本地
+7. git init                                                 新建一个本地Git仓库
+
+
+
 # typora语法
 
 ## markdown基础语法
