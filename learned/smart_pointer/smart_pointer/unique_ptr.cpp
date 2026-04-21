@@ -83,6 +83,7 @@ int main() {
 	std::ofstream("demo.txt") << 'x';	//准备要读取的文件
 	{
 		using unique_file_t = std::unique_ptr<std::FILE, decltype(&close_file)>;
+		//unique_file_t 就是：一个 unique_ptr，它管理 std::FILE* 资源，并使用函数指针作为删除器。
 		unique_file_t fp(std::fopen("demo.txt", "r"), &close_file);		//打开文件，返回 FILE* 指针
 		if (fp)
 			std::cout << char(std::fgetc(fp.get())) << "\n";			//从文件读取一个字符。
