@@ -18,5 +18,17 @@
     <ClCompile Include="unique_ptr.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="shared_ptr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="shared_ptr_2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="weak_ptr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="pointer_cast.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

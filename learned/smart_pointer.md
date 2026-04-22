@@ -503,13 +503,295 @@ int main() {
 
 
 
-### 示例
+### 示例1
 
+```C++
+#include <chrono>		//<chrono> 是 C++ 标准库中专门处理时间和时钟的库
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <thread>
+
+using namespace std::chrono_literals;//本质上是个语法糖，让你不用写 std::chrono::milliseconds(987) 这种冗长的写法
+
+struct Base {
+	Base() { std::cout << "Base::Base()\n"; }
+
+	//注意：此处非虚析构函数无妨
+	~Base() { std::cout << "Base::~Base()\n"; }
+};
+
+struct Derived :public Base {
+	Derived() { std::cout << "Derived::Derived()\n"; }
+
+	~Derived() { std::cout << "Derived::~Derved()\n"; }
+};
+
+template <typename T>
+void print(T rem, std::shared_ptr<Base> const& sp)  {
+	std::cout << rem << "\n\tget() = " << sp.get()
+		<< ",use_count() = " << sp.use_count() << '\n';
+}
+
+void thr(std::shared_ptr<Base> p) {
+	std::this_thread::sleep_for(987ms);
+	std::shared_ptr<Base> lp = p;	//线程安全，即使共享use_count递增
+	{
+		static std::mutex io_mutex;
+		std::lock_guard<std::mutex> lk(io_mutex);
+		print("线程中的本地指针：", lp);
+	}
+}
+
+int main() {
+	std::shared_ptr<Base> p = std::make_shared<Derived>();
+
+	print("创建了一个共享的Derived（作为指向Base的指针）", p);
+
+	std::thread t1{ thr,p }, t2{ thr,p }, t3{ thr,p };	//这行是在创建三个 std::thread 线程对象，每个线程都要执行 thr 函数。
+	p.reset();	//从main中释放所有权，它会让 p 不再指向原来的对象；
+
+	print("3个线程之间共享所有权，并从main释放所有权：", p);
+
+    //join()是主线程等待子线程结束的阻塞操作
+	t1.join();		//如果不用 join()，主线程走到 main 结尾就直接 return 0 了，整个程序就结束了。那么那些还在 sleep 或者正在打印的子线程会被操作系统强制杀死，可能导致资源没释放、析构函数没调用，甚至程序崩溃。
+	t2.join();
+	t3.join();
+
+	std::cout << "所有线程均已完成，最后一个线程已删除。\n";
+}
 ```
 
+
+
+#### `lp = p` 下面的那个单独的中括号 `{}` 是什么？
+
+这个单独的 `{}` 不是循环也不是函数，它是 C++ 里的**局部作用域（代码块）**，用来限制变量的生命周期。
+
+看这段代码：
+
+```c++
+{
+    static std::mutex io_mutex;
+    std::lock_guard<std::mutex> lk(io_mutex);
+    print("线程中的本地指针：", lp);
+}
+```
+
+它的作用是：
+
+- 让 `io_mutex` 和 `lk` 这两个变量，**只在这个 `{}` 里面有效**；
+- 当程序执行到 `}` 时，`lk` 这个 `std::lock_guard` 会自动析构，**自动释放锁**，保证互斥锁一定会被解开，避免死锁。
+
+这是 C++ 里很常用的写法，用来控制 RAII 对象（比如锁、智能指针）的生命周期。
+
+
+
+#### `std::thread t1{ thr,p }, t2{ thr,p }, t3{ thr,p };` 里 `thr` 的用法为啥不像普通函数？
+
+这行是在创建三个 `std::thread` 线程对象，每个线程都要执行 `thr` 函数。
+
+你可以把 `std::thread` 的构造函数理解成：
+
+```c++
+std::thread 线程名{ 要执行的函数, 函数的参数1, 参数2, ... };
+```
+
+所以 `t1{ thr, p }` 就是：
+
+- 创建线程 `t1`；
+- 让线程 `t1` 去执行 `thr` 这个函数；
+- 把 `p` 作为参数传给 `thr`。
+
+它和普通函数调用 `thr(p)` 不一样，是因为 `std::thread` 是在**后台异步执行**这个函数，而不是主线程直接调用。主线程创建完线程就继续往下跑了，不会等 `thr` 执行完。
+
+
+
+### 示例二
+
+```c++
+#include <iostream>
+#include <memory>
+
+struct MyObj {
+	MyObj() { std::cout << "MyObj constructed\n"; }
+
+	~MyObj() { std::cout << "MyObj destructed\n"; }
+};
+
+//Container 是一个外壳，里面可以放一个 MyObj 对象，并且它可以返回一个“绑定了外壳生命周期的 MyObj 指针”，确保只要别人在用那个指针，外壳就不会被提前销毁。
+struct Container :std::enable_shared_from_this<Container>	//注意：public 继承
+{
+	std::shared_ptr<MyObj> memberObj;
+	void CreateMember() { memberObj = std::make_shared<MyObj>(); }
+
+	std::shared_ptr<MyObj> GetAsMyObj() {
+		//为成员使用别名shared ptr
+		return std::shared_ptr<MyObj>(shared_from_this(), memberObj.get());
+	}
+};
+
+#define COUT(str) std::cout<<"\n"<<str<<"\n"
+#define DEMO(...) std::cout<<#__VA_ARGS__<<" = "<<__VA_ARGS__<<"\n"
+
+int main() {
+	COUT("创建共享容器");
+	std::shared_ptr<Container> cont = std::make_shared<Container>();
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+
+	COUT("创建成员");
+	cont->CreateMember();
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+
+	COUT("创建另一个共享容器");
+	std::shared_ptr<Container> cont2 = cont;
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+	DEMO(cont2.use_count());
+	DEMO(cont2->memberObj.use_count());
+
+	COUT("GetAsMyObj");
+	std::shared_ptr<MyObj> myobj1 = cont->GetAsMyObj();
+	DEMO(myobj1.use_count());
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+	DEMO(cont2.use_count());
+	DEMO(cont2->memberObj.use_count());
+
+	COUT("复制别名obj");
+	std::shared_ptr<MyObj>myobj2 = myobj1;
+	DEMO(myobj1.use_count());
+	DEMO(myobj2.use_count());
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+	DEMO(cont2.use_count());
+	DEMO(cont2->memberObj.use_count());
+
+	COUT("Restting cont2");
+	cont2.reset();
+	DEMO(myobj1.use_count());
+	DEMO(myobj2.use_count());
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+
+	COUT("Resetting myobj2");
+	myobj2.reset();
+	DEMO(myobj1.use_count());
+	DEMO(cont.use_count());
+	DEMO(cont->memberObj.use_count());
+
+	COUT("Resetting cont");
+	cont.reset();
+	DEMO(myobj1.use_count());
+	DEMO(cont.use_count());
+}
 ```
 
 
+
+#### `__VA_ARGS__` 是什么？
+
+- 代表宏参数中 `...` 所匹配的**所有实际参数**（可以是一个、多个，用逗号分隔）。
+- 简单说：`...` 是“占位符”，`__VA_ARGS__` 就是“实际传进来的那堆东西”。
+
+#### `#__VA_ARGS__` 是什么？
+
+- `#` 是**字符串化运算符**（stringification），把参数原样转换成字符串字面量。
+- `#__VA_ARGS__` 就是把整个参数列表（包括逗号和空格）变成一个字符串。
+
+##### 举例：
+
+```c++
+DEMO(cont.use_count())
+```
+
+展开后变成：
+
+```c++
+std::cout << "cont.use_count()" << " = " << cont.use_count() << "\n";
+```
+
+- `#__VA_ARGS__` 变成了 `"cont.use_count()"`（字符串）
+- `__VA_ARGS__` 变成了 `cont.use_count()`（表达式，会被求值）
+
+
+
+##  weak_ptr
+
+Defined in header `<memory>`
+
+```c++
+template< class T > class weak_ptr;
+```
+
+`STD::weak_ptr` 是一个智能指针，**它保留一个非拥有（“弱”）的引用**，指向由 `std::shared_ptr `管理的对象。**必须将其转换为 `std::shared_ptr` 才能访问被引用对象。**
+
+`std::weak_ptr`模型临时所有权：**当一个对象只有在存在的情况下才需要访问，并且可能随时被其他人删除时，`std::weak-ptr`用于跟踪该对象，并将其转换为`std::shared_ptr`以获得临时所有权**。如果此时原始的`std::shared_ptr`被销毁，则对象的生存期将延长，直到临时的`std::shared_ptr`也被销毁。
+
+**`std::weak_ptr`的另一个用途是打破由`std::shared_ptr`管理的对象形成的引用循环。**如果这样的循环是孤立的（即没有外部共享指针进入循环），`shared_ptr`引用计数不能达到零，内存就会泄漏。为了防止这种情况，可以使循环中的一个指针[变弱 ](https://www.cppreference.com/cpp/memory/weak_ptr/~weak_ptr#Example)。
+
+
+
+### 成员类型
+
+| element_type | T<br />std::remove_extent_t\<T> |
+| :----------: | :-----------------------------: |
+
+
+
+### 成员函数
+
+| [(constructor)](https://www.cppreference.com/cpp/memory/weak_ptr/weak_ptr) | 创造了新的 `weak_ptr` |
+| :----------------------------------------------------------: | :-------------------: |
+| **[(destructor) ](https://www.cppreference.com/cpp/memory/weak_ptr/~weak_ptr)** |  **摧毁 `weak_ptr`**  |
+| **[operator=](https://www.cppreference.com/cpp/memory/weak_ptr/operator%3D)** |   **指定weak_ptr**    |
+
+
+
+#### 修饰符
+
+| [reset](https://www.cppreference.com/cpp/memory/weak_ptr/reset) | 释放对被管理对象的所有权 |
+| :----------------------------------------------------------: | :----------------------: |
+| **[swap](https://www.cppreference.com/cpp/memory/weak_ptr/swap)** |    **交换被管理对象**    |
+
+
+
+#### 观察者
+
+| **[use_count](https://www.cppreference.com/cpp/memory/weak_ptr/use_count)** | **返回管理该对象的 `shared_ptr` 对象数量** |
+| :----------------------------------------------------------: | :----------------------------------------: |
+| **[expired](https://www.cppreference.com/cpp/memory/weak_ptr/expired)** |       **检查被引用对象是否已被删除**       |
+| **[lock](https://www.cppreference.com/cpp/memory/weak_ptr/lock)** |  **创建一个`shared_ptr`来管理引用的对象**  |
+| **[owner_before](https://www.cppreference.com/cpp/memory/weak_ptr/owner_before)** |       **提供基于所有者的弱指针排序**       |
+| **[owner_hash](https://www.cppreference.com/cpp/memory/weak_ptr/owner_hash)** |       **提供基于所有者的弱指针哈希**       |
+| **[owner_equal](https://www.cppreference.com/cpp/memory/weak_ptr/owner_equal)** |     **提供基于所有者的弱指针相等比较**     |
+
+
+
+### 非成员函数
+
+| [std::swap](https://www.cppreference.com/cpp/memory/weak_ptr/swap2) | 专门研究`std::swap`算法 |
+| :----------------------------------------------------------: | :---------------------: |
+
+
+
+#### 辅助类
+
+| [std::atomic](https://www.cppreference.com/cpp/memory/weak_ptr/atomic2) | 原子弱指针 |
+| :----------------------------------------------------------: | :--------: |
+
+
+
+### 注意
+
+和 `std::shared_ptr` 类似，`weak_ptr` 的典型实现会存储两个指针：
+
+- 指向控制块的指针；和
+- 构造它的`shared_ptr`的存储指针。
+
+**一个单独的存储指针是必要的，以确保将`shared_ptr`转换为`weak_ptr`并返回正确工作，即使是对于混叠的`shared_ptrs`也是如此**。如果不将其锁定到`shared_ptr`中，就不可能访问`weak_ptr`中存储的指针。
 
 
 
@@ -881,3 +1163,174 @@ int main()
 
 
 ## `std::shared_ptr` 的四种强制类型转换
+
+定义在头部 `<memory>`
+
+### 四种转换函数
+
+cppreference 页面主要介绍了这四个函数，它们的本质作用相同：**创建一个新的 `std::shared_ptr<T>`，它与传入的 `shared_ptr<U>` 共享同一个对象的所有权，但通过不同的 `cast` 来提供 `T*` 类型的访问视角**--[文档点击这里](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)。
+
+| 函数名                             | 等效的裸指针转换       | 主要用途 & 关键特性                                          |
+| :--------------------------------- | :--------------------- | :----------------------------------------------------------- |
+| `std::static_pointer_cast<T>`      | `static_cast<T*>`      | **用途**：在编译时已知继承关系的类之间进行转换（如向上转型 `Derived*` 到 `Base*`，或向下转型 `Base*` 到 `Derived*` 但不做运行时检查）。 <br />**安全性**：**不做运行时检查**。如果向下转型，程序员必须保证类型是正确的，否则会导致未定义行为[-1](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)。 |
+| `std::dynamic_pointer_cast<T>`     | `dynamic_cast<T*>`     | **用途**：安全地进行向下转型。在多态继承体系中，将一个基类指针转换为派生类指针。 <br />**安全性**：**会做运行时检查**。如果转换失败，它会返回一个**空的 `std::shared_ptr`**，而不是抛出异常或产生未定义行为。这是一个非常安全的设计[-1](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)。 |
+| `std::const_pointer_cast<T>`       | `const_cast<T*>`       | **用途**：为指针添加或移除 `const` 或 `volatile` 限定符。 <br />**注意**：主要用于与接受非 `const` 指针参数的旧式 C API 进行交互，**不建议**用其来修改原本声明为 `const` 的对象，否则同样是未定义行为[-1](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)。 |
+| `std::reinterpret_pointer_cast<T>` | `reinterpret_cast<T*>` | **用途**：进行低级的、与平台相关的“位重解释”转换。例如，将指针转换为 `uintptr_t` 或在一个不相关的类之间进行转换。 <br />**注意**：这是最危险的转换，**除非你明确知道自己在做什么，否则避免使用**。自 C++17 起可用[-1](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)。 |
+
+**C++20 的新变化 (Rvalue Overloads)**
+该页面也提到了自 C++20 起增加的右值引用重载版本[（(2), (4), (6), (8)）](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)。它允许你从将要销毁的 `shared_ptr` 中进行转换，可以避免不必要的引用计数原子操作，从而略微提升性能。例如：`auto p2 = std::static_pointer_cast<Derived>(std::move(p1));` 调用后，`p1` 会被置为空。
+
+#### 一个必须避免的致命错误
+
+cppreference 页面中[“Notes”](https://www.cppreference.com/cpp/memory/shared_ptr/pointer_cast#Version_1)部分强调的一点，是很多开发者容易踩的坑。它指出下面的代码会导致**未定义行为**（通常表现为**双重删除**并导致程序崩溃）:
+
+cpp
+
+```c++
+// 错误示例！会导致程序崩溃！
+std::shared_ptr<Base> basePtr = std::make_shared<Derived>();
+
+// 错误原因：创建了一个新的、独立的控制块来管理对象
+std::shared_ptr<Derived> derivedPtr(static_cast<Derived*>(basePtr.get()));
+
+// 当 basePtr 和 derivedPtr 离开作用域时，它们的控制块都会尝试 delete 同一个对象，
+// 导致双重删除 (Double Free)！
+```
+
+
+
+正是为了避免这个问题，C++11才引入了 `std::static_pointer_cast` 等函数。
+
+#### 正确用法示例
+
+以下是正确的使用方式：
+
+cpp
+
+```c++
+#include <iostream>
+#include <memory>
+
+class Base {
+public:
+    virtual ~Base() = default; // 多态基类必须有虚析构函数
+    virtual void print() const { std::cout << "I am Base" << std::endl; }
+};
+
+class Derived : public Base {
+public:
+    void print() const override { std::cout << "I am Derived" << std::endl; }
+    void derivedFunc() const { std::cout << "Calling derivedFunc" << std::endl; }
+};
+
+int main() {
+    // 1. 准备一个指向派生类对象的基类智能指针
+    std::shared_ptr<Base> basePtr = std::make_shared<Derived>();
+
+    // 2. 使用 static_pointer_cast 进行向上转型 (Derived -> Base)
+    // 这是安全的，并且通常不需要显式转换，但可以展示用法
+    std::shared_ptr<Base> anotherBasePtr = std::static_pointer_cast<Base>(basePtr);
+
+    // 3. 使用 dynamic_pointer_cast 进行安全的向下转型 (Base -> Derived)
+    std::shared_ptr<Derived> derivedPtr = std::dynamic_pointer_cast<Derived>(basePtr);
+
+    // 4. 必须检查 dynamic_pointer_cast 是否成功！
+    if (derivedPtr) {
+        // 转换成功，可以安全使用
+        derivedPtr->derivedFunc(); 
+    } else {
+        std::cout << "Dynamic cast failed!" << std::endl;
+    }
+
+    // 5. 使用 const_pointer_cast
+    std::shared_ptr<const int> constIntPtr = std::make_shared<const int>(42);
+    std::shared_ptr<int> intPtr = std::const_pointer_cast<int>(constIntPtr);
+    // 注意：虽然能编译通过，但如果原始对象真的是 const，修改它仍是未定义行为
+
+    // 6. 所有 shared_ptr 共享所有权，只有一个控制块
+    std::cout << "Use count: " << basePtr.use_count() << std::endl; // 输出：3 (basePtr, anotherBasePtr, derivedPtr)
+    
+    return 0;
+}
+```
+
+
+
+#### 总结与速查表
+
+| 场景                                 | 推荐函数                        | 备注                                                        |
+| :----------------------------------- | :------------------------------ | :---------------------------------------------------------- |
+| 将 `Derived` 转换为 `Base`           | `std::static_pointer_cast`      | 通常是隐式转换，但也可显式使用。                            |
+| 将 `Base` **安全地**转换为 `Derived` | `std::dynamic_pointer_cast`     | **必须**检查返回值是否为空。                                |
+| 添加或移除 `const/volatile`          | `std::const_pointer_cast`       | 慎用，仅用于与旧 API 交互。                                 |
+| 在完全不相关的类型间转换             | `std::reinterpret_pointer_cast` | 除非你非常清楚后果，否则避免使用。                          |
+| 确保 `shared_ptr` 转换后仍共享所有权 | **上述四种函数**                | **切勿**使用 `std::shared_ptr<T>(cast(r.get()))` 这种模式。 |
+
+### 示例
+
+```c++
+#include <iostream>
+#include <memory>
+
+class Base {
+public:
+	int a;
+	virtual void f() const { std::cout << "I am base!\n"; }
+	virtual ~Base(){}
+};
+
+class Derived :public Base {
+public:
+	void f() const override { std::cout << "I am derived!\n"; }
+	~Derived(){}
+};
+
+int main() {
+	auto basePtr = std::make_shared<Base>();
+	std::cout << "Base pointer says: ";
+	basePtr->f();
+
+	auto derivedPtr = std::make_shared<Derived>();
+	std::cout << "Derived pointer says";
+	derivedPtr->f();
+
+	//static_pointer_cast向上提升类层次结构
+	basePtr = std::static_pointer_cast<Base>(derivedPtr);
+	std::cout << "指向派生的基指针表示： ";
+	basePtr->f();
+
+	//使用 dynamic_pointer_cast 在类层次结构中向下或横向转换
+	auto downcastedPtr = std::dynamic_pointer_cast<Derived>(basePtr);
+	if (downcastedPtr) {
+		std::cout << "向下转换的指针显示： ";
+		downcastedPtr->f();
+	}
+
+	//所有指向派生类的指针共享所有权
+	std::cout<<"指向底层派生的指针： "
+		<<derivedPtr.use_count()
+		<<'\n';
+}
+```
+
+#### 分析*所有指向派生类的指针共享所有权*过程：
+
+1. `auto derivedPtr = std::make_shared<Derived>();`
+   → `derivedPtr` 指向新创建的 `Derived` 对象，引用计数 = 1。
+2. `basePtr = std::static_pointer_cast<Base>(derivedPtr);`
+   - `static_pointer_cast` 从 `derivedPtr` 生成一个新的 `shared_ptr<Base>`，与 `derivedPtr` **共享所有权**，因此引用计数变为 2。
+   - 赋值给 `basePtr` 前，原 `basePtr`（指向之前的 `Base` 对象）被重置，原 `Base` 对象引用计数减 1（变为 0）并被销毁。
+   - 赋值后，`basePtr` 指向 `Derived` 对象，引用计数仍为 2（`derivedPtr` 和 `basePtr` 共享）。
+3. `auto downcastedPtr = std::dynamic_pointer_cast<Derived>(basePtr);`
+   - 因为 `basePtr` 实际指向 `Derived`，转换成功，返回一个新的 `shared_ptr<Derived>`，**再次共享所有权**。
+   - 引用计数变为 3。
+
+此时共有三个 `shared_ptr` 指向同一个 `Derived` 对象：`derivedPtr`、`basePtr`、`downcastedPtr`。
+因此 `derivedPtr.use_count()` 输出 **3**。
+
+
+
+## `share_ptr`的原子操作函数
+
+定义在头部 `<memory>`
+

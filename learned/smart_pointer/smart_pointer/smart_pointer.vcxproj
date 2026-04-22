@@ -123,7 +123,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="pointer_cast.cpp" />
+    <ClCompile Include="shared_ptr.cpp" />
+    <ClCompile Include="shared_ptr_2.cpp" />
     <ClCompile Include="unique_ptr.cpp" />
+    <ClCompile Include="weak_ptr.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

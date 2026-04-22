@@ -3,8 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\pointer_cast.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|solutionrelative:pointer_cast.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\unique_ptr.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|solutionrelative:unique_ptr.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\shared_ptr.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|solutionrelative:shared_ptr.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\shared_ptr_2.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|solutionrelative:shared_ptr_2.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\weak_ptr.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{1FA19CC3-1984-4C0D-89DE-B8F4D619F0B4}|smart_pointer.vcxproj|solutionrelative:weak_ptr.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,12 +35,64 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "pointer_cast.cpp",
+              "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\pointer_cast.cpp",
+              "RelativeDocumentMoniker": "pointer_cast.cpp",
+              "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\pointer_cast.cpp",
+              "RelativeToolTip": "pointer_cast.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-04-22T11:54:59.691Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "weak_ptr.cpp",
+              "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\weak_ptr.cpp",
+              "RelativeDocumentMoniker": "weak_ptr.cpp",
+              "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\weak_ptr.cpp",
+              "RelativeToolTip": "weak_ptr.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-04-22T09:44:44.771Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "shared_ptr_2.cpp",
+              "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\shared_ptr_2.cpp",
+              "RelativeDocumentMoniker": "shared_ptr_2.cpp",
+              "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\shared_ptr_2.cpp",
+              "RelativeToolTip": "shared_ptr_2.cpp",
+              "ViewState": "AgIAACgAAAAAAAAAAAAkwD0AAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-04-22T06:47:44.377Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "shared_ptr.cpp",
+              "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\shared_ptr.cpp",
+              "RelativeDocumentMoniker": "shared_ptr.cpp",
+              "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\shared_ptr.cpp",
+              "RelativeToolTip": "shared_ptr.cpp",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAADQAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-04-22T04:50:07.837Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "unique_ptr.cpp",
               "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\unique_ptr.cpp",
               "RelativeDocumentMoniker": "unique_ptr.cpp",
               "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\smart_pointer\\smart_pointer\\unique_ptr.cpp",
               "RelativeToolTip": "unique_ptr.cpp",
-              "ViewState": "AgIAAE0AAAAAAAAAAAAiwF0AAAA3AAAAAAAAAA==",
+              "ViewState": "AgIAAFMAAAAAAAAAAAAkwHYAAAADAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-04-18T13:11:38.489Z",
               "EditorCaption": ""
