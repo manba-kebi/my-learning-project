@@ -4,17 +4,17 @@
 
 ### 是什么？
 
-**智能指针**是带自动回收功能的指针，比如可以帮助把new出来的内存，在不用的时候自动delete，不用手动写delete了。它本质上是个**模板类**，用起来和普通裸指针*p一样，支持 \* 解引用、->访问成员，但多了自动释放的安全特性。（这里安排的计划是学完RAII，再学智能指针的，没想到这两块主要都是为了安全的）
+**智能指针**是带自动回收功能的指针，比如可以帮助把new出来的内存，在不用的时候自动delete，不用手动写delete了。它本质上是个**模板类**，用起来和普通裸指针*p一样，支持 \* 解引用、->访问成员，但多了自动释放的安全特性。
 
 
 
 ### 三个核心智能指针
 
-|    智能指针     |                核心特点                |             适用场景             |
-| :-------------: | :------------------------------------: | :------------------------------: |
-| std::unique_ptr |  **独占所有权**，不允许拷贝，只能移动  | 绝大多数场景，单个对象的专属管理 |
-| std::shared_ptr |   **共享所有权**，引用计数，多人共用   | 需要多个地方同时使用同一个对象时 |
-|  std::weak_ptr  | **弱引用**，不增加计数，配合shared_ptr |   解决shared_ptr循环引用的问题   |
+|    智能指针     |                  核心特点                  |             适用场景             |
+| :-------------: | :----------------------------------------: | :------------------------------: |
+| std::unique_ptr |  **独占所有权**，**不允许拷贝，只能移动**  | 绝大多数场景，单个对象的专属管理 |
+| std::shared_ptr |   **共享所有权**，**引用计数，多人共用**   | 需要多个地方同时使用同一个对象时 |
+|  std::weak_ptr  | **弱引用**，**不增加计数，配合shared_ptr** |   解决shared_ptr循环引用的问题   |
 
 
 
@@ -60,14 +60,14 @@ int main(){
 ### 新手需记的三个要点
 
 1. **优先用 `make_unique` / `make_shared`**，别直接用 `new` 初始化智能指针，更安全。
-2. ` unique_ptr `**不能拷贝**,但可以用`std::move`转移所有权。
+2. ` unique_ptr `**不能拷贝**,**但可以用`std::move`转移所有权。**
 3. 别用裸指针和智能指针混用，不然会导致重复释放、内存泄漏等问题。
 
 
 
 ## unique_ptr
 
-`STD::unique_ptr` 是一个智能指针，它拥有（负责）并通过指针管理另一个对象，当 `unique_ptr` 超出作用域时，它会处理该对象。
+`STD::unique_ptr` 是一个智能指针，它拥有（负责）并通过指针管理另一个对象，**当 `unique_ptr` 超出作用域时，它会处理该对象。**
 
 ```c++
 template< class T, class Deleter = std::default_delete<T> > class unique_ptr;
@@ -78,11 +78,11 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 当发生以下任一情况时，使用关联的删除器处理该对象：
 
 - 管理 `unique_ptr` 对象被销毁。
-- 管理 `unique_ptr` 对象通过运算符= 或 reset（） 被赋予另一个指针。
+- 管理 `unique_ptr` 对象通过`operator=`或 `reset（）` 被赋予另一个指针。
 
 
 
-通过调用 `get_deleter()（ptr）`，使用可能由用户提供的删除器来丢弃该对象。默认的删除器（`std::default_delete`）使用`删除`操作符，它会销毁对象并释放内存。
+通过调用 `get_deleter()（ptr）`，使用可能由用户提供的删除器来丢弃该对象。默认的删除器（`std::default_delete`）使用`delete`操作符，它会销毁对象并释放内存。
 
 
 
@@ -99,30 +99,30 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 ### 注意
 
-只有非 const `unique_ptr` 才能将被管理对象的所有权转移到其他 `unique_ptr`。如果一个对象的生命周期由 `const std::unique_ptr` 管理，则其寿命受限于指针创建的范围。
+**只有非 const `unique_ptr` 才能将被管理对象的所有权转移到其他 `unique_ptr`。如果一个对象的生命周期由 `const std::unique_ptr` 管理，则它仅限于创建指针的范围。**
 
 `unique_ptr` 通常用于管理对象的生命周期，包括：
 
 - 为处理动态生命周期对象的类和函数提供异常安全，通过保证在正常退出和通过异常退出时都被删除。
 - 将具有动态寿命的唯一拥有对象的所有权转移到函数中。
 - 通过函数获取具有动态寿命的唯一拥有对象的所有权。
-- 作为移动感知容器中的元素类型，如 Std::Vector，这些容器持有指向动态分配对象的指针（例如，如果需要多态行为）。
+- 作为移动感知容器中的元素类型，如 `Std::Vector`，它保存指向动态分配对象的指针（例如，如果需要多态行为）。
 
 
 
 #### unique_str与shared_ptr的一些区别
 
-（官方文档里放到 注意 这里了，我感觉跟像是一些需要注意的区别)
+（官方文档里放到 注意 这里了，我感觉更像是一些需要注意的区别)
 
-`unique_ptr `可以用于不完全类型 T 的构造，例如在 `pImpl `模式中作为句柄使用。**若使用默认删除器，则 T 必须在代码中删除器被调用时是完整的类型，这发生在 `unique_ptr` 的析构函数、移动赋值运算符和 `reset` 成员函数中**。（相比之下，`std::shared_ptr `无法从不完全类型的裸指针构造，**但可以在 T 不完整时销毁**）。注意，**若 T 是类模板特化**，则使用 `unique_ptr `作为操作数（例如 !p）时，由于 `ADL` 的要求，**T 的参数必须完整**。
-
-
-
-**如果T是基类B的派生类，则unique_ptr<T>可隐式转换为unique_ptr<B>**。所得`unique_ptr<B>`的默认删除器将使用B的`operator delete`，**除非B的析构函数是虚函数，否则会导致未定义行为**。需注意的是，**std::shared_ptr的行为有所不同：std::shared_ptr<B>将使用T类型的operator delete，即使B的析构函数不是虚函数，被管理对象也能正确删除**。
+`unique_ptr `可以用于不完全类型 T 的构造，例如在 `pImpl `模式中作为句柄使用。**若使用默认删除器，则 T 必须在代码中删除器被调用时是完整的类型，这发生在 `unique_ptr` 的析构函数、移动赋值运算符和 `reset` 成员函数中**。（相比之下，`std::shared_ptr `无法从不完全类型的裸指针构造，**但可以在 T 不完整时销毁**）。注意，**如果T是一个类模板专门化**，则使用 `unique_ptr `作为操作数（例如 !p）时，由于 `ADL` 的要求，**T 的参数必须完整**。
 
 
 
-与`std::shared_ptr`不同，`unique_ptr`可以通过满足`NullablePointer`的任何自定义句柄类型来管理对象。例如，这允许通过提供定义`typedef boost::offset_ptr`指针的`Deleter`来管理位于共享内存中的对象；或者另一个花哨的指针。
+**如果T是基类B的派生类，则unique_ptr\<T>可隐式转换为unique_ptr\<B>**。所得`unique_ptr<B>`的默认删除器将使用B的`operator delete`，**除非B的析构函数是虚函数，否则会导致未定义行为**。需注意的是，**std::shared_ptr的行为有所不同：std::shared_ptr<B>将使用T类型的operator delete，即使B的析构函数不是虚函数，被管理对象也能正确删除**。
+
+
+
+与`std::shared_ptr`不同，`unique_ptr`可以通过满足`NullablePointer`的任何自定义句柄类型来管理对象。例如，这允许通过提供定义 typedef [boost::offset_ptr ](https://www.boost.org/doc/libs/release/doc/html/boost/interprocess/offset_ptr.html)指针的`Deleter`来管理位于共享内存中的对象；或者另一个[复杂的指针](https://www.cppreference.com/cpp/named_req/Allocator#Fancy_pointers)。
 
 
 
@@ -140,8 +140,8 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 | [(constructor) ](https://www.cppreference.com/cpp/memory/unique_ptr/unique_ptr) |    构造一个新的unique_ptr    |
 | :----------------------------------------------------------: | :--------------------------: |
-| [(destructor)](https://www.cppreference.com/cpp/memory/unique_ptr/~unique_ptr) | **销毁管理对象（如果存在）** |
-| [operator=](https://www.cppreference.com/cpp/memory/unique_ptr/operator%3D) |    **分配 `unique_ptr`**     |
+| **[(destructor)](https://www.cppreference.com/cpp/memory/unique_ptr/~unique_ptr)** | **销毁管理对象（如果存在）** |
+| **[operator=](https://www.cppreference.com/cpp/memory/unique_ptr/operator%3D)** |    **分配 `unique_ptr`**     |
 
 
 
@@ -149,8 +149,8 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 | [release](https://www.cppreference.com/cpp/memory/unique_ptr/release) | 返回指向被管理对象的指针并释放所有权 |
 | :----------------------------------------------------------: | :----------------------------------: |
-| [reset](https://www.cppreference.com/cpp/memory/unique_ptr/reset) |         **替换了被管理对象**         |
-| [swap](https://www.cppreference.com/cpp/memory/unique_ptr/swap) |          **交换被管理对象**          |
+| **[reset](https://www.cppreference.com/cpp/memory/unique_ptr/reset)** |           **替换托管对象**           |
+| **[swap](https://www.cppreference.com/cpp/memory/unique_ptr/swap)** |          **交换被管理对象**          |
 
 
 
@@ -158,8 +158,8 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 | [get](https://www.cppreference.com/cpp/memory/unique_ptr/get) |       返回指向托管对象的指针       |
 | :----------------------------------------------------------: | :--------------------------------: |
-| [get_deleter](https://www.cppreference.com/cpp/memory/unique_ptr/get_deleter) | **返回用于销毁被管理对象的删除器** |
-| [operator bool](https://www.cppreference.com/cpp/memory/unique_ptr/operator_bool) |  **检查是否存在关联的受管理对象**  |
+| **[get_deleter](https://www.cppreference.com/cpp/memory/unique_ptr/get_deleter)** | **返回用于销毁被管理对象的删除器** |
+| **[operator bool](https://www.cppreference.com/cpp/memory/unique_ptr/operator_bool)** |  **检查是否存在关联的受管理对象**  |
 
 
 
@@ -172,18 +172,18 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 #### 数组版本，unique_ptr<T[]>
 
-| [operator[\]](https://www.cppreference.com/cpp/memory/unique_ptr/operator_at) | 提供对受管理数组的索引访问 |
+| [operator[]](https://www.cppreference.com/cpp/memory/unique_ptr/operator_at) | 提供对受管理数组的索引访问 |
 | :----------------------------------------------------------: | :------------------------: |
 
 
 
 ### 非成员函数
 
-| [make_unique<br />make_unique_for_overwrite](https://www.cppreference.com/cpp/memory/unique_ptr/make_unique) |       创建一个管理新对象的唯一指针        |
-| :----------------------------------------------------------: | :---------------------------------------: |
-| [operator== <br />operator!= <br />operator< <br />operator<=<br />operator><br />operator>= <br />operator<=>](https://www.cppreference.com/cpp/memory/unique_ptr/operator_cmp) | 与另一个 `unique_ptr` 或与 `nullptr` 比较 |
-| [operator<<(std::unique_ptr)](https://www.cppreference.com/cpp/memory/unique_ptr/operator_ltlt) |         输出管理指针到输出流的值          |
-| [std::swap](https://www.cppreference.com/cpp/memory/unique_ptr/swap2) |           专注于 std::交换算法            |
+| [make_unique<br />make_unique_for_overwrite](https://www.cppreference.com/cpp/memory/unique_ptr/make_unique) |         创建一个管理新对象的唯一指针          |
+| :----------------------------------------------------------: | :-------------------------------------------: |
+| **[operator== <br />operator!= <br />operator< <br />operator<=<br />operator><br />operator>= <br />operator<=>](https://www.cppreference.com/cpp/memory/unique_ptr/operator_cmp)** | **与另一个 `unique_ptr` 或与 `nullptr` 比较** |
+| **[operator<<(std::unique_ptr)](https://www.cppreference.com/cpp/memory/unique_ptr/operator_ltlt)** |           输出管理指针到输出流的值            |
+| [**std::swap**](https://www.cppreference.com/cpp/memory/unique_ptr/swap2) |             专注于 std::交换算法              |
 
 
 
@@ -366,8 +366,8 @@ int main() {
 
 `STD::shared_ptr` 是一个智能指针，通过指针保留对对象的共享所有权。多个 `shared_ptr` 对象可能拥有同一个对象。当发生以下任一情况时，该对象被销毁并释放其内存：
 
-- 拥有该对象的最后一个剩余`shared_ptr`被销毁
-- 最后一个拥有该对象的 `shared_ptr` 通过 `operator=` 或 `reset（）` 被赋予另一个指针。
+- **拥有该对象的最后一个剩余`shared_ptr`被销毁**
+- **最后一个拥有该对象的 `shared_ptr` 通过 `operator=` 或 `reset（）` 被赋予另一个指针。**
 
 使用[delete表达式](https://www.cppreference.com/cpp/language/delete)或在构造过程中提供给`shared_ptr`的自定义删除器销毁对象。
 
@@ -377,16 +377,16 @@ int main() {
 
 
 
-所有成员函数（包括复制构造函数和复制赋值）都可以被不同`shared_ptr`对象上的多个线程调用，而无需额外的同步，即使这些对象是同一对象的副本和共享所有权。如果多个执行线程在没有同步的情况下访问同一个`shared_ptr`对象，并且这些访问中的任何一个使用了`shared_ptr`的非const成员函数，那么将发生数据竞争；[ `std::atomic<shared_ptr>` ](https://www.cppreference.com/cpp/memory/shared_ptr/atomic2)可用于防止数据竞争。
+所有成员函数（包括复制构造函数和复制赋值）都可以被不同`shared_ptr`对象上的多个线程调用，而无需额外的同步，即使这些对象是同一对象的副本和共享所有权。**如果多个执行线程在没有同步的情况下访问同一个`shared_ptr`对象，并且这些访问中的任何一个使用了`shared_ptr`的非const成员函数，那么将发生数据竞争；**[ `std::atomic<shared_ptr>` ](https://www.cppreference.com/cpp/memory/shared_ptr/atomic2)可用于防止数据竞争。
 
 
 
 ### 成员类型
 
-|   成员类型   |              定义               |
-| :----------: | :-----------------------------: |
-| element_type | T<br />std::remove_extent_t\<T> |
-|  weak_type   |        std::weak_ptr\<T>        |
+|     成员类型     |                定义                 |
+| :--------------: | :---------------------------------: |
+| **element_type** | **T<br />std::remove_extent_t\<T>** |
+|  **weak_type**   |        **std::weak_ptr\<T>**        |
 
 
 
@@ -446,9 +446,9 @@ int main() {
 
 ### 注意
 
-- 一个对象的所有权只能通过复制构造或复制其价值赋予另一个 `shared_ptr` 来与另一个 `shared_ptr` 共享。使用另一个 `shared_ptr` 拥有的原始底层指针构建新 `shared_ptr` 会导致未定义的行为。
+- 一个对象的所有权只能通过复制构造或复制将其值分配给另一个 `shared_ptr` 来与另一个 `shared_ptr` 共享。**使用另一个 `shared_ptr` 拥有的原始底层指针构建新 `shared_ptr` 会导致未定义的行为。**
 
-- `std::shared_ptr`可以与不完整类型T一起使用。但是，来自原始指针（**template**<**class** **Y**> shared_ptr(Y)）的构造函数和**template**<**class** **Y**> void reset(Y*)成员函数只能用指向完整类型的指针调用（注意`std::unique_ptr`可以从指向不完整类型的原始指针构造）。
+- **`std::shared_ptr`可以与不完整类型T一起使用。但是，来自原始指针（template<class Y> shared_ptr(Y)）的构造函数和template<class Y> void reset(Y*)成员函数只能用指向完整类型的指针调用**（注意`std::unique_ptr`可以从指向不完整类型的原始指针构造）。
 
 - `std::shared_ptr<T>`中的 T 可能是一个函数类型：在这种情况下，它管理一个指向函数的指针，而不是一个对象指针。**这有时用于在引用动态库或插件的任何函数时保持其加载状态**：
 
@@ -495,11 +495,11 @@ int main() {
 
 
 
-在现有的实现中，如果存在指向同一控制块的共享指针，则弱指针的数量会递增.
+在现有的实现中，如果存在指向同一控制块的共享指针，则弱指针的数量会递增
 
 
 
-为了满足线程安全要求，引用计数器通常使用等效的`std::atomic:：fetch_add`与`std::memory_order_relaxed`来递增（递减需要更强的排序来安全地销毁控制块）。
+为了满足线程安全要求，引用计数器通常使用等效的`std::atomic::fetch_add`与`std::memory_order_relaxed`来递增（递减需要更强的排序来安全地销毁控制块）。
 
 
 
@@ -566,7 +566,7 @@ int main() {
 
 #### `lp = p` 下面的那个单独的中括号 `{}` 是什么？
 
-这个单独的 `{}` 不是循环也不是函数，它是 C++ 里的**局部作用域（代码块）**，用来限制变量的生命周期。
+这个单独的 `{}` 不是循环也不是函数，它是 C++ 里的**局部作用域（代码块）**，**用来限制变量的生命周期。**
 
 看这段代码：
 
@@ -718,6 +718,168 @@ std::cout << "cont.use_count()" << " = " << cont.use_count() << "\n";
 
 
 
+### 一句话讲清shared_ptr与控制块关系（deepseek总结）
+
+**`shared_ptr` 是一个“遥控器”，控制块是“电池仓里的共享数据区”。**
+
+- 多个 `shared_ptr`（遥控器）可以**共用一个控制块**。
+- 控制块里记录着：**当前有多少个遥控器在用同一个对象**（引用计数）、以及怎么销毁它。
+- 遥控器 `shared_ptr` 本身只存两个指针：一个指向**你真正要用的对象**，另一个指向**控制块**。
+
+------
+
+#### 先忘掉控制块，看一个简单的开始
+
+你自己 `new` 一个对象，然后交给两个 `shared_ptr` 管理：
+
+cpp
+
+```
+std::shared_ptr<int> p1(new int(5));
+std::shared_ptr<int> p2 = p1;
+```
+
+
+
+此时，内存布局大概是这样子（示意图）：
+
+text
+
+```
+p1 ───► [ int: 5 ]    ← 被管理对象
+p2 ─╝
+
+p1.use_count()  →  2
+p2.use_count()  →  2
+```
+
+
+
+但“引用计数 2”存在哪儿呢？**不可能存在 `int` 对象里面，也不可能存在 `p1` 或 `p2` 自己里面**，因为它们是两个独立变量。
+
+于是系统在第一次创建 `shared_ptr` 时，悄悄在堆上分配了一个“管理块”——这就是**控制块**。
+
+------
+
+#### 真实的内部结构：`shared_ptr` + 控制块
+
+你的文档里有一段非常精准的描述：
+
+> 在典型实现中，`shared_ptr` 只包含两个指针：
+>
+> - 存储的指针（`get()` 返回的指针，指向被管理对象）；
+> - 指向控制块的指针。
+>
+> 控制块是一个动态分配的对象，包含：
+>
+> - 指向被管理对象的指针（或对象本身）；
+> - 删除器；
+> - 分配器；
+> - `shared_ptr` 的引用计数；
+> - `weak_ptr` 的引用计数。
+
+我们画成图：
+
+text
+
+```
+ p1  ───► [ 指向 int 的指针 ]       ──► [ int: 5 ]
+             [ 指向控制块的指针 ] ──► ┌──────────────────┐
+                                   │ shared_ptr 计数: 2  │
+                                   │ weak_ptr 计数: 0    │
+                                   │ 删除器 (default)    │
+                                   │ 指向 int 的指针 ────┼──► 同一个 int 对象
+                                   └──────────────────┘
+```
+
+
+
+当 `p2 = p1` 时，`p2` 里存的两个指针和 `p1` 完全一样（或者说拷贝了这两个指针），所以它们**共享同一个控制块**，自然也能读到同样的引用计数。
+
+------
+
+#### 什么时候控制块和被管理对象放在一起？
+
+你文档里也说了：
+
+> 通过 `std::make_shared` 或 `std::allocate_shared` 创建时，控制块和托管对象的内存是通过**单次分配**创建的。
+
+也就是说，`auto p = std::make_shared<int>(5);` 在堆上只申请了**一整块内存**，里面同时放了 `int` 对象和控制块。这样可以减少一次内存分配，效率更高，而且缓存更友好。
+
+示意图：
+
+text
+
+```
+ p  ───► [ 指向 int 的指针 ] ──► ┌──────────────────┐
+           [ 指向控制块的指针 ] ──┤ (同一块内存的起始) │
+                               │ 控制块(计数、删除器)│
+                               │ int: 5            │
+                               └──────────────────┘
+```
+
+
+
+而用 `std::shared_ptr<T>(new T(...))` 方式构造，则是**分两次分配**：一次 `new T`，一次分配控制块。
+
+------
+
+#### “存储的指针”和“控制块里指向对象的指针”不一定相同
+
+文档里特别强调了一个容易被忽略的细节：
+
+> `shared_ptr` 直接持有的指针是 `get()` 返回的指针，而控制块持有的指针/对象是当共享所有者数量达到零时将被删除的指针。这些指针**不一定相等**。
+
+这是什么场景？最常见的就是**别名构造函数**（aliasing constructor），比如你文档里的例子：
+
+cpp
+
+```
+struct Container : std::enable_shared_from_this<Container> {
+    std::shared_ptr<MyObj> memberObj;
+    std::shared_ptr<MyObj> GetAsMyObj() {
+        return std::shared_ptr<MyObj>(shared_from_this(), memberObj.get());
+    }
+};
+```
+
+
+
+这里构造出来的 `shared_ptr<MyObj>`：
+
+- **存储的指针**（`get()` 返回的）是 `memberObj.get()`，即指向 `MyObj` 对象。
+- **控制块**却是 `Container` 对象的控制块。
+
+效果就是：
+
+- 只要这个 `shared_ptr<MyObj>` 存在，`Container` 对象就不会被销毁（因为引用计数在 `Container` 的控制块上）。
+- 但你通过这个指针只能访问到 `MyObj` 成员，不能直接拿到 `Container`。
+
+当最后一个 `shared_ptr` 销毁时，控制块里的引用计数归零，删除器会销毁**整个 `Container` 对象**（以及它内部的 `memberObj`），而不是仅仅删除 `MyObj`。
+
+这就是**控制块和被管理对象生命周期分离**的典型用例。
+
+------
+
+#### 怎么理解 `shared_ptr` 本身的线程安全性？
+
+文档里提到：
+
+> 所有成员函数（包括复制构造函数和复制赋值）都可以被不同 `shared_ptr` 对象上的多个线程调用而无需额外同步，即使这些对象是同一对象的副本和共享所有权。
+
+意思就是：**只要每个线程操作的是“不同的遥控器”（不同的 `shared_ptr` 变量），即使它们遥控的是同一个对象/同一个控制块，也是线程安全的**。因为控制块里的引用计数操作是原子的。
+
+但如果是**同一个 `shared_ptr` 对象**被多个线程同时写（比如同时给它赋值或 `reset`），那就是数据竞争，必须用原子操作或锁保护。
+
+------
+
+#### 最后用一句话总结区别
+
+- **`shared_ptr`**：你拿在手里的智能指针对象，负责提供 `*`、`->` 等访问，本身只是两个指针的大小。
+- **控制块**：隐藏在堆上的“后台管理数据”，负责记录引用计数、删除器，以及真正决定何时销毁被管理对象。
+
+
+
 ##  weak_ptr
 
 Defined in header `<memory>`
@@ -731,6 +893,32 @@ template< class T > class weak_ptr;
 `std::weak_ptr`模型临时所有权：**当一个对象只有在存在的情况下才需要访问，并且可能随时被其他人删除时，`std::weak-ptr`用于跟踪该对象，并将其转换为`std::shared_ptr`以获得临时所有权**。如果此时原始的`std::shared_ptr`被销毁，则对象的生存期将延长，直到临时的`std::shared_ptr`也被销毁。
 
 **`std::weak_ptr`的另一个用途是打破由`std::shared_ptr`管理的对象形成的引用循环。**如果这样的循环是孤立的（即没有外部共享指针进入循环），`shared_ptr`引用计数不能达到零，内存就会泄漏。为了防止这种情况，可以使循环中的一个指针[变弱 ](https://www.cppreference.com/cpp/memory/weak_ptr/~weak_ptr#Example)。
+
+### 循环引用怎么破的？一个例子
+
+```c++
+struct B; // 前置声明
+
+struct A {
+    std::shared_ptr<B> ptrB;
+    ~A() { std::cout << "A destroyed\n"; }
+};
+
+struct B {
+    std::weak_ptr<A> ptrA;  // 关键：用 weak_ptr 而不是 shared_ptr
+    ~B() { std::cout << "B destroyed\n"; }
+};
+
+int main() {
+    auto a = std::make_shared<A>();
+    auto b = std::make_shared<B>();
+    a->ptrB = b;
+    b->ptrA = a;            // 不会增加 a 的强引用计数
+} // a 和 b 的强引用计数先后降到 0，都销毁了
+```
+
+如果 `B::ptrA` 是 `shared_ptr<A>`，那么 `a` 和 `b` 互相强引用，计数永远为 2，谁也死不掉。
+换成 `weak_ptr` 后，`b->ptrA` 不增加 `a` 的强引用计数，`a` 的计数只有 `main` 里的那个遥控器，离开作用域就销毁，然后 `b` 也随之销毁。
 
 
 
@@ -786,7 +974,7 @@ template< class T > class weak_ptr;
 
 ### 注意
 
-和 `std::shared_ptr` 类似，`weak_ptr` 的典型实现会存储两个指针：
+**和 `std::shared_ptr` 类似，`weak_ptr` 的典型实现会存储两个指针：**
 
 - 指向控制块的指针；和
 - 构造它的`shared_ptr`的存储指针。
@@ -805,7 +993,7 @@ template< class T > class weak_ptr;
 
 - **[glvalue](https://www.cppreference.com/cpp/language/value_category#glvalue)（“广义”lvalue）是一种表达式，其求值用来确定对象或函数的身份;**
 - **[prvalue ](https://www.cppreference.com/cpp/language/value_category#prvalue)（“纯”rvalue）是一种其值的表达式**
-- - **计算内置算子操作数的值（该 PRvalue无*结果对象* ），或**
+  - **计算内置算子操作数的值（该 PRvalue无*结果对象* ），或**
   - **初始化一个对象（该 prvalue 称为具有*结果对象*，结果对象可以是变量、由[新表达](https://www.cppreference.com/cpp/language/new)式创建的对象、由[临时物质化](https://www.cppreference.com/cpp/language/implicit_conversion#Temporary_materialization)创建的临时对象，或其成员。注意，`non-void` [discard](https://www.cppreference.com/cpp/language/expressions#Discarded-value_expressions)表达式有一个结果对象（即物质化的临时表达式）。此外，每个类和数组的 prvalue 都有结果对象，除非它是 [`decltype`](https://www.cppreference.com/cpp/language/decltype) 的操作数; ）。**
 - **[xvalue ](https://www.cppreference.com/cpp/language/value_category#xvalue)（“eXpiring”值）是一个 glvalue，表示资源可重复利用的对象;**
 - **[lvalue](https://www.cppreference.com/cpp/language/value_category#lvalue) 是指不是 xvalue的 glvalue;**
@@ -1332,5 +1520,78 @@ int main() {
 
 ## `share_ptr`的原子操作函数
 
-定义在头部 `<memory>`
+[具体请见详情]([std::atomic_... - cppreference.com](https://www.cppreference.com/cpp/memory/shared_ptr/atomic))，因为看完这篇文档之后，我也没太看懂他讲的内容与原子操作有什么关系。并且下面还有相关文档，好像是具体的原子操作文档。我用deepseek帮我总结了一下这个页面，下面是deepseek的回复：
+
+### 核心概念速记
+
+- **控制块**：`shared_ptr` 管理的对象不直接存储引用计数，而是指向一个独立的“控制块”。多个 `shared_ptr` 对象（不同实例）可以共享同一个控制块。
+- **控制块本身是线程安全的**：这是关键！多个线程可以安全地同时**操作不同的** `shared_ptr` 实例（比如通过拷贝、赋值、`reset` 等），即使它们共享同一个控制块，引用计数的增减操作是原子性的。
+- **`shared_ptr` 对象本身不是线程安全的**：如果多个线程需要直接读写**同一个** `shared_ptr` 对象本身，就必须使用原子操作。
+
+### `std::atomic<std::shared_ptr<T>>` (C++20 起)
+
+这是官方推荐的现代标准方案[1](https://www.cppreference.com/cpp/memory/shared_ptr/atomic)和[2](https://cppreference-45864d.gitlab-pages.liu.se/en/cpp/memory/shared_ptr/atomic2.html#top)。它的用法和普通的 `std::atomic` 完全一样，非常直观。
+
+- **初始化与赋值**:
+
+  ```c++
+  std::atomic<std::shared_ptr<MyClass>> atomic_sp{std::make_shared<MyClass>(42)};
+  
+  // 赋值：原子地替换指针，等价于 store(desired)
+  atomic_sp = std::make_shared<MyClass>(100);
+  ```
+
+  
+
+  注意：初始化本身不是原子操作。另外，原子类型不可复制/移动构造或赋值。
+
+- **读取 (load)**:
+
+  ```c++
+  // 原子地加载并返回当前值的拷贝
+  auto sp = atomic_sp.load(); 
+  ```
+
+  
+
+  `load` 操作会原子地增加引用计数，因此是安全的。
+
+- **写入 (store)**:
+
+  ```c++
+  // 原子地用 new_val 替换旧值
+  auto new_val = std::make_shared<MyClass>(200);
+  atomic_sp.store(new_val); 
+  ```
+
+  
+
+  可以用 `memory_order` 参数控制内存序。
+
+- **交换 (exchange)**:
+
+  ```c++
+  // 原子地用 new_val 替换旧值，并返回旧值
+  auto new_val = std::make_shared<MyClass>(200);
+  auto old_val = atomic_sp.exchange(new_val);
+  ```
+
+  
+
+- **比较并交换 (CAS)**:
+
+  ```c++
+  auto expected = atomic_sp.load();
+  auto desired = std::make_shared<MyClass>(300);
+  // 如果当前值与 expected 相等，则原子地替换为 desired 并返回 true
+  if (atomic_sp.compare_exchange_strong(expected, desired)) {
+      // 交换成功
+  } else {
+      // 交换失败，expected 会被更新为当前值
+  }
+  ```
+
+
+
+
 

@@ -8,15 +8,15 @@
 
 **资源获取及初始化** （RAII）是一种C++编程技术（但似乎这就是一种编程思想），它将**必须在使用前获取的资源生命周期（分配的堆内存、执行线程、开放套接字、打开文件、锁定的互斥体、磁盘空间、数据库链接--任何有限供应的资源**）绑定到对象的生命周期。
 
-RAII 保证资源对任何可能访问该对象的函数开放（资源可用性为[类不变 ](https://en.wikipedia.org/wiki/Class_invariant)，消除冗余的运行时测试）。他还保证所有资源在其控制对象生命周期结束时释放，**按获取顺序逆序**。（我感觉这有些像虚析构函数的使用，当释放资源的时候，按析构函数的实现，依次从子类->父类的顺序调用析构函数）。同样，如果资源获取失败（构造函数以例外退出），每个完全构建的成员和基础子对象获取的所有资源将按初始化的逆序释放。这利用了核心语言特性（[ 对象寿命 ](https://en.cppreference.com/cpp/language/lifetime)、[ 作用域退出 ](https://en.cppreference.com/cpp/language/statements)、[ 初始化顺序](https://en.cppreference.com/cpp/language/initializer_list#Initialization_order)和[栈展开 ](https://en.cppreference.com/cpp/language/throw#Stack_unwinding)）来消除资源泄漏，保证异常安全。该技术的另一个名称是范围*限制资源管理* （SBRM），源自基本用例：RAII 对象因作用域退出而生命周期终止。
+RAII 保证资源对任何可能访问该对象的函数开放（资源可用性为[类不变 ](https://en.wikipedia.org/wiki/Class_invariant)，消除冗余的运行时测试）。他还保证所有资源在其控制对象生命周期结束时释放，**按获取顺序逆序**。（我感觉这有些像虚析构函数的使用，当释放资源的时候，按析构函数的实现，依次从子类->父类的顺序调用析构函数）。同样，如果资源获取失败（构造函数以例外退出），每个完全构建的成员和基础子对象获取的所有资源将按初始化的逆序释放。这利用了核心语言特性（[ 对象寿命 ](https://en.cppreference.com/cpp/language/lifetime)、[ 作用域退出 ](https://en.cppreference.com/cpp/language/statements)、[ 初始化顺序](https://en.cppreference.com/cpp/language/initializer_list#Initialization_order)和[栈展开 ](https://en.cppreference.com/cpp/language/throw#Stack_unwinding)）来消除资源泄漏，保证异常安全。该技术的另一个名称是*范围限制资源管理* （SBRM），源自基本用例：RAII 对象因作用域退出而生命周期终止。
 
 
 
-始终通过RAII类实例使用该资源，满足以下条件：
+**始终通过RAII类实例使用该资源，满足以下条件：**
 
-1. 具有自动存储时长或临时寿命，或
+1. **具有自动存储时长或临时寿命，或**
 
-2. 其寿命受自动或临时对象的寿命限制
+2. **其寿命受自动或临时对象的寿命限制**
 
    
 
@@ -97,7 +97,7 @@ void good()
 
 另外，看看资源管理的例子 [附录 E](https://www.stroustrup.com/3rd_safe0.html) C[++编程语言 ](https://www.stroustrup.com/3rd.html)。
 
-（我的想法啊：RAII在这里的实现是将自己的资源创建时机绑定到了这个类的对象的创建时机上，也就是构造函数调用的时候。并且将自己资源的释放也绑定到了这个类的析构函数上，这样在函数退出时，或者其他对象销毁的时候，触发析构函数，RAII的资源也被释放掉了。可能这段表达不太准确，因为RAII是种思想）
+（我的想法啊：RAII在这里的实现是将自己的资源创建时机绑定到了这个类的对象的创建时机上，也就是构造函数调用的时候。并且将自己资源的释放也绑定到了这个类的析构函数上，这样在函数退出时，或者其他对象销毁的时候，触发析构函数，RAII的资源也被释放掉了。可能这段表达不太准确）
 
 ## 6.注意
 
@@ -137,7 +137,7 @@ RAII用一句话来说就是：
 
 1. **所有单参数的构造函数**：只要不是故意要做类型转换，都建议加上 `explicit`，这是现代 C++ 的最佳实践。
 2. **RAII 类 / 智能指针 / 锁类**：比如你之前看到的 `std::lock_guard`、`std::unique_ptr`，它们的构造函数都是 `explicit` 的，防止你不小心把一个裸指针直接传进去，导致资源管理混乱。（最认可的一点）
-3. **有多个参数的构造函数**：C++11 以后，`explicit` 也可以用在多参数构造函数上，防止列表初始化的隐式转换，比如：
+3. **有多个参数的构造函数**：C++11 以后，`explicit` 也可以用在多参数构造函数上，防止列表初始化的隐式转换
 
 
 
