@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E275245A-7167-4A65-99DE-189DAC289F5D}|thread.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\jthread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E275245A-7167-4A65-99DE-189DAC289F5D}|thread.vcxproj|solutionrelative:jthread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E275245A-7167-4A65-99DE-189DAC289F5D}|thread.vcxproj|C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\thread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E275245A-7167-4A65-99DE-189DAC289F5D}|thread.vcxproj|solutionrelative:thread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "jthread.cpp",
+              "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\jthread.cpp",
+              "RelativeDocumentMoniker": "jthread.cpp",
+              "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\jthread.cpp",
+              "RelativeToolTip": "jthread.cpp",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-04-30T13:31:19.294Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "thread.cpp",
+              "DocumentMoniker": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\thread.cpp",
+              "RelativeDocumentMoniker": "thread.cpp",
+              "ToolTip": "C:\\Users\\28251\\Desktop\\my-learning-project\\learned\\thread\\thread\\thread.cpp",
+              "RelativeToolTip": "thread.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAACAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-04-30T11:45:30.672Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
