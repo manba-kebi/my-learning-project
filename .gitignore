@@ -1,0 +1,12 @@
+# Visual Studio 缓存与临时文件（只忽略无用文件，不碰代码）
+.vs/
+*.ipch
+*.obj
+*.pdb
+*.exe
+*.ilk
+*.iobj
+*.ipdb
+*.log
+*.tlog
+*.lastbuildstate
