@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "新建配置文件",
+    "Projects": [
+      {
+        "Path": "server.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "..\\client\\client.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
