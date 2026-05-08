@@ -20,7 +20,7 @@
 
 ### 用法示例
 
-std::unique
+#### std::unique
 
 ```c++
 #include <memory>
@@ -38,7 +38,7 @@ int main(){
 
 
 
-std::shared_ptr
+#### std::shared_ptr
 
 ```c++
 #include <memory>
@@ -67,7 +67,7 @@ int main(){
 
 ## unique_ptr
 
-`STD::unique_ptr` 是一个智能指针，它拥有（负责）并通过指针管理另一个对象，**当 `unique_ptr` 超出作用域时，它会处理该对象。**
+`STD::unique_ptr` 是一个智能指针，**它拥有（负责）并通过指针管理另一个对象**，**当 `unique_ptr` 超出作用域时，它会处理该对象。**
 
 ```c++
 template< class T, class Deleter = std::default_delete<T> > class unique_ptr;
@@ -75,7 +75,7 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 //如果 T* 不是有效类型（例如 T 是引用类型），那么实例化定义 std::unique_ptr<T， Deleter> 的程序是错误的。
 ```
 
-当发生以下任一情况时，使用关联的删除器处理该对象：
+当发生以下任一情况时，**使用关联的删除器处理该对象**：
 
 - 管理 `unique_ptr` 对象被销毁。
 - 管理 `unique_ptr` 对象通过`operator=`或 `reset（）` 被赋予另一个指针。
@@ -90,7 +90,7 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 
 
-`unique_ptr` 有两个版本：
+`unique_ptr` 有两个版本（这与前面提到的 “*别直接用 `new` 初始化智能指针*” 并不矛盾，因为是**实践中推荐用 `make` 函数，而 `make` 函数内部帮你封装好了对 `new` 的调用。**）：
 
 - 管理单个对象（例如，分配为`new`对象）。
 - 管理动态分配的对象数组（例如，分配为 `new[]` 的对象）。
@@ -103,7 +103,7 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 `unique_ptr` 通常用于管理对象的生命周期，包括：
 
-- 为处理动态生命周期对象的类和函数提供异常安全，通过保证在正常退出和通过异常退出时都被删除。
+- **为处理动态生命周期对象的类和函数提供异常安全，通过保证在正常退出和通过异常退出时都被删除。**
 - 将具有动态寿命的唯一拥有对象的所有权转移到函数中。
 - 通过函数获取具有动态寿命的唯一拥有对象的所有权。
 - 作为移动感知容器中的元素类型，如 `Std::Vector`，它保存指向动态分配对象的指针（例如，如果需要多态行为）。
@@ -118,7 +118,7 @@ template < class T, class Deleter > class unique_ptr<T[], Deleter>;
 
 
 
-**如果T是基类B的派生类，则unique_ptr\<T>可隐式转换为unique_ptr\<B>**。所得`unique_ptr<B>`的默认删除器将使用B的`operator delete`，**除非B的析构函数是虚函数，否则会导致未定义行为**。需注意的是，**std::shared_ptr的行为有所不同：std::shared_ptr<B>将使用T类型的operator delete，即使B的析构函数不是虚函数，被管理对象也能正确删除**。
+**如果T是基类B的派生类，则unique_ptr\<T>可隐式转换为unique_ptr\<B>**。所得`unique_ptr<B>`的默认删除器将使用B的`operator delete`，**除非B的析构函数是虚函数，否则会导致未定义行为**。需注意的是，**std::shared_ptr的行为有所不同：std::shared_ptr\<B>将使用T类型的operator delete，即使B的析构函数不是虚函数，被管理对象也能正确删除**。
 
 
 
@@ -330,6 +330,38 @@ int main() {
 }
 ```
 
+```c++
+1) Unique所有权语义演示
+D::D
+D::bar
+D::~D
+
+2)运行时多态性演示
+D::D
+D::bar
+D::~D
+
+3) 自定义删除器演示
+x
+
+4)自定义lambda表达式删除器和异常安全演示
+D::D
+从自定义删除器中删除...
+D::~D
+Caught exception
+
+5)unique_ptr演示的数组形式
+D::D
+D::D
+D::D
+D::~D
+D::~D
+D::~D
+
+6)链接列表演示
+墙上挂着1,000,000瓶啤酒...
+```
+
 
 
 #### 删除器省略与不省略的意义
@@ -448,7 +480,7 @@ int main() {
 
 - 一个对象的所有权只能通过复制构造或复制将其值分配给另一个 `shared_ptr` 来与另一个 `shared_ptr` 共享。**使用另一个 `shared_ptr` 拥有的原始底层指针构建新 `shared_ptr` 会导致未定义的行为。**
 
-- **`std::shared_ptr`可以与不完整类型T一起使用。但是，来自原始指针（template<class Y> shared_ptr(Y)）的构造函数和template<class Y> void reset(Y*)成员函数只能用指向完整类型的指针调用**（注意`std::unique_ptr`可以从指向不完整类型的原始指针构造）。
+- **`std::shared_ptr`可以与不完整类型T一起使用。但是，来自原始指针（template\<class Y> shared_ptr(Y)）的构造函数和template\<class Y> void reset(Y*)成员函数只能用指向完整类型的指针调用**（注意`std::unique_ptr`可以从指向不完整类型的原始指针构造）。
 
 - `std::shared_ptr<T>`中的 T 可能是一个函数类型：在这种情况下，它管理一个指向函数的指针，而不是一个对象指针。**这有时用于在引用动态库或插件的任何函数时保持其加载状态**：
 
@@ -470,8 +502,8 @@ int main() {
 
 在典型实现中，`shared_ptr` 只包含两个指针：
 
-- 存储的指针（get（）返回的指针）；
-- 指向控制块的指针。
+- **存储的指针（get（）返回的指针）；**
+- **指向控制块的指针。**
 
 控制块是一个动态分配的对象，包含：
 
@@ -560,6 +592,24 @@ int main() {
 
 	std::cout << "所有线程均已完成，最后一个线程已删除。\n";
 }
+```
+
+```c++
+Base::Base()
+Derived::Derived()
+创建了一个共享的Derived（作为指向Base的指针）
+        get() = 00000231920D4AA0,use_count() = 1
+3个线程之间共享所有权，并从main释放所有权：
+        get() = 0000000000000000,use_count() = 0
+线程中的本地指针：
+        get() = 00000231920D4AA0,use_count() = 5
+线程中的本地指针：
+        get() = 00000231920D4AA0,use_count() = 4
+线程中的本地指针：
+        get() = 00000231920D4AA0,use_count() = 2
+Derived::~Derved()
+Base::~Base()
+所有线程均已完成，最后一个线程已删除。
 ```
 
 
@@ -689,6 +739,54 @@ int main() {
 }
 ```
 
+```c++
+创建共享容器
+cont.use_count() = 1
+cont->memberObj.use_count() = 0
+
+创建成员
+MyObj constructed
+cont.use_count() = 1
+cont->memberObj.use_count() = 1
+
+创建另一个共享容器
+cont.use_count() = 2
+cont->memberObj.use_count() = 1
+cont2.use_count() = 2
+cont2->memberObj.use_count() = 1
+
+GetAsMyObj
+myobj1.use_count() = 3
+cont.use_count() = 3
+cont->memberObj.use_count() = 1
+cont2.use_count() = 3
+cont2->memberObj.use_count() = 1
+
+复制别名obj
+myobj1.use_count() = 4
+myobj2.use_count() = 4
+cont.use_count() = 4
+cont->memberObj.use_count() = 1
+cont2.use_count() = 4
+cont2->memberObj.use_count() = 1
+
+Restting cont2
+myobj1.use_count() = 3
+myobj2.use_count() = 3
+cont.use_count() = 3
+cont->memberObj.use_count() = 1
+
+Resetting myobj2
+myobj1.use_count() = 2
+cont.use_count() = 2
+cont->memberObj.use_count() = 1
+
+Resetting cont
+myobj1.use_count() = 1
+cont.use_count() = 0
+MyObj destructed
+```
+
 
 
 #### `__VA_ARGS__` 是什么？
@@ -732,9 +830,7 @@ std::cout << "cont.use_count()" << " = " << cont.use_count() << "\n";
 
 你自己 `new` 一个对象，然后交给两个 `shared_ptr` 管理：
 
-cpp
-
-```
+```c++
 std::shared_ptr<int> p1(new int(5));
 std::shared_ptr<int> p2 = p1;
 ```
@@ -742,8 +838,6 @@ std::shared_ptr<int> p2 = p1;
 
 
 此时，内存布局大概是这样子（示意图）：
-
-text
 
 ```
 p1 ───► [ int: 5 ]    ← 被管理对象
@@ -763,7 +857,7 @@ p2.use_count()  →  2
 
 #### 真实的内部结构：`shared_ptr` + 控制块
 
-你的文档里有一段非常精准的描述：
+文档里有一段非常精准的描述：
 
 > 在典型实现中，`shared_ptr` 只包含两个指针：
 >
@@ -779,8 +873,6 @@ p2.use_count()  →  2
 > - `weak_ptr` 的引用计数。
 
 我们画成图：
-
-text
 
 ```
  p1  ───► [ 指向 int 的指针 ]       ──► [ int: 5 ]
@@ -808,8 +900,6 @@ text
 
 示意图：
 
-text
-
 ```
  p  ───► [ 指向 int 的指针 ] ──► ┌──────────────────┐
            [ 指向控制块的指针 ] ──┤ (同一块内存的起始) │
@@ -820,7 +910,7 @@ text
 
 
 
-而用 `std::shared_ptr<T>(new T(...))` 方式构造，则是**分两次分配**：一次 `new T`，一次分配控制块。
+**而用 `std::shared_ptr<T>(new T(...))` 方式构造，则是分两次分配：一次 `new T`，一次分配控制块。**
 
 ------
 
@@ -832,9 +922,7 @@ text
 
 这是什么场景？最常见的就是**别名构造函数**（aliasing constructor），比如你文档里的例子：
 
-cpp
-
-```
+```c++
 struct Container : std::enable_shared_from_this<Container> {
     std::shared_ptr<MyObj> memberObj;
     std::shared_ptr<MyObj> GetAsMyObj() {

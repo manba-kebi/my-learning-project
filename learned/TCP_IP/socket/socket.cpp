@@ -1,18 +1,20 @@
 #include "socket.h"
 using namespace akai::socket;
 
-Socket::Socket(): m_ip(""),m_port(0),m_sockfd(0)
+Socket::Socket(): m_ip(""),m_port(0),m_sockfd(INVALID_SOCKET)
 {
-    WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);  // 初始化
 
     // 1. 创建 socket
     m_sockfd = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);    //向操作系统申请一个 套接字（socket），它是一个抽象的通信端点，后续所有收发数据都围绕它进行。
     if (m_sockfd == INVALID_SOCKET) {
-        printf("create socket error, code = %d", WSAGetLastError());
-        throw std::runtime_error("Failed to create socket");
+        printf("create socket error, code = %d\n", WSAGetLastError());
+        throw std::runtime_error("Failed to create socket\n");
     }
     printf("create server socket success!\n");
+}
+
+Socket::Socket(SOCKET sockfd) :m_ip(""), m_port(0), m_sockfd(sockfd) {
+
 }
 
 Socket::~Socket()
@@ -33,7 +35,7 @@ bool Socket::bind(const string& ip, int port) {
     sockaddr.sin_port = htons(port);
 
     if (::bind(m_sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == SOCKET_ERROR) {
-        printf("bind error, code = %d", WSAGetLastError());
+        printf("bind error, code = %d\n", WSAGetLastError());
         return false;
     }
     m_ip = ip;
@@ -46,7 +48,7 @@ bool Socket::listen(int backlog)
 {
     // 3. 监听
     if (::listen(m_sockfd, backlog) == SOCKET_ERROR) {
-        printf("listen error, code = %d", WSAGetLastError());
+        printf("listen error, code = %d\n", WSAGetLastError());
         return false;
     }
     printf("server listening ...\n");
@@ -60,7 +62,7 @@ bool Socket::connect(const string& ip, int port) {
     inet_pton(AF_INET, ip.c_str(), &sockaddr.sin_addr);
     sockaddr.sin_port = htons(port);
     if (::connect(m_sockfd, (struct sockaddr*)&sockaddr, sizeof(sockaddr)) == SOCKET_ERROR) {
-        printf("socket connect error, code = %d", WSAGetLastError());
+        printf("socket connect error, code = %d\n", WSAGetLastError());
         return false;
     }
     m_ip = ip;
@@ -71,14 +73,14 @@ bool Socket::connect(const string& ip, int port) {
 SOCKET Socket::accept() {
     SOCKET connfd = ::accept(m_sockfd, nullptr, nullptr);
     if (connfd == INVALID_SOCKET) {
-        printf("accept error, code = %d", WSAGetLastError());
+        printf("accept error, code = %d\n", WSAGetLastError());
         return INVALID_SOCKET;
     }
-    printf("socket accept, conn = %d", connfd);
+    printf("socket accept, conn = %d\n", connfd);
     return connfd;
 }
 
-int send(const char* buf, int len) {
+int Socket::send(const char* buf, int len) {
     // 6. 发送数据回显
     return ::send(m_sockfd, buf, len, 0);
 }
@@ -90,7 +92,63 @@ int Socket::recv(char* buf, int len) {
 void Socket::close() {
     if (m_sockfd != INVALID_SOCKET) {
         ::closesocket(m_sockfd);
-        WSACleanup();
-        m_sockfd = 0;
+        m_sockfd = INVALID_SOCKET;
     }
+}
+
+bool Socket::set_non_blocking() {
+    u_long mode = 1;  // 1 表示非阻塞，0 表示阻塞
+    if (ioctlsocket(m_sockfd, FIONBIO, &mode) == SOCKET_ERROR) {
+        printf("socket set_non_blocking error, code = %d\n", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool Socket::set_send_buffer(int size) {
+    int buff_size = size;
+    if (setsockopt(m_sockfd, SOL_SOCKET, SO_SNDBUF, (const char*)&buff_size, sizeof(buff_size)) < 0) {   //设置套接字socket的属性
+        printf("socket set_send_buffer error : code = %d", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool Socket::set_recv_buffer(int size) {
+    int buff_size = size;
+    if (setsockopt(m_sockfd, SOL_SOCKET, SO_RCVBUF, (const char*)&buff_size, sizeof(buff_size)) < 0) {   //设置套接字socket的属性
+        printf("socket set_recv_buffer error : code = %d", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool Socket::set_linger(bool active, int seconds) {
+    struct linger l;
+    std::memset(&l, 0, sizeof(l));
+    l.l_onoff = active ? 1 : 0;
+    l.l_linger = seconds;
+    if (setsockopt(m_sockfd, SOL_SOCKET, SO_LINGER, (const char*)&l, sizeof(l)) < 0) {
+        printf("socket set_linger error : code = %d", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool Socket::set_keepalive() {
+    int flag = 1;
+    if (setsockopt(m_sockfd, SOL_SOCKET, SO_KEEPALIVE, (const char*)&flag, sizeof(flag))<0) {
+        printf("socket set_keepalive error : code = %d", WSAGetLastError());
+        return false;
+    }
+    return true;
+}
+
+bool Socket::set_reuseaddr() {
+    int flag = 1;
+    if (setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&flag, sizeof(flag)) < 0) {
+        printf("socket set_reuseaddr error : code = %d", WSAGetLastError());
+        return false;
+    }
+    return true;
 }

@@ -21,9 +21,15 @@
     <ClCompile Include="..\socket\socket.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\socket\server_socket.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\socket\socket.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\socket\server_socket.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
