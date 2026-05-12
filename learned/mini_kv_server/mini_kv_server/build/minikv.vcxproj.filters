@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\src\net\socket_runtime.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\src\net\socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\src\core\thread_pool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\src\core\key_value_store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\src\core\command.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\src\server\server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\28251\Desktop\my-learning-project\learned\mini_kv_server\mini_kv_server\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{EBB8009A-2227-32D6-A480-CD87057879FA}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
