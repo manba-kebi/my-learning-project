@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <iostream>
 #include <thread>
@@ -13,14 +13,14 @@
 namespace minikv::core {
 	class ThreadPool {
 	public:
-		//`Task` ÀàÐÍÓÃ `std::function<void()>`¡£
+		//`Task` ç±»åž‹ç”¨ `std::function<void()>`ã€‚
 		using Task = std::function<void()>;
 
 		ThreadPool(std::size_t worker_count, std::size_t max_quque_size);
 		~ThreadPool();
 
 		ThreadPool(const ThreadPool& ) = delete;
-		ThreadPool& operatot = (const ThreadPool & ) = delete;
+		ThreadPool& operator = (const ThreadPool & ) = delete;
 
 		bool submit(Task task);
 		void shutdown();
@@ -33,9 +33,9 @@ namespace minikv::core {
 
 		mutable std::mutex mutex_;
 		std::condition_variable condition_;
-		std::queue<Task> tasks_;				//´æ´¢´ýÖ´ÐÐµÄÈÎÎñ
-		std::vector<std::thread> workers_;		//´æ´¢¹¤×÷Ïß³Ì¶ÔÏó±¾Éí
-		std::size_t max_deque_size_{0};
+		std::queue<Task> tasks_;				//å­˜å‚¨å¾…æ‰§è¡Œçš„ä»»åŠ¡
+		std::vector<std::thread> workers_;		//å­˜å‚¨å·¥ä½œçº¿ç¨‹å¯¹è±¡æœ¬èº«
+		std::size_t max_queue_size_{0};
 		bool stopping_{ false };
 	};
 }

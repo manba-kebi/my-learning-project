@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include <string>
@@ -13,7 +13,7 @@ namespace minikv::net {
 		SocketRuntime(const SocketRuntime&) = delete;
 		SocketRuntime& operator=(const SocketRuntime&) = delete;
 
-		bool ok() const nonexcept;
+		bool ok() const noexcept;
 
 	private:
 		bool initialized_{ false };
