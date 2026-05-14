@@ -1,4 +1,0 @@
-C:/Users/28251/Desktop/my-learning-project/learned/mini_kv_server/mini_kv_server/build/CMakeFiles/minikv.dir
-C:/Users/28251/Desktop/my-learning-project/learned/mini_kv_server/mini_kv_server/build/CMakeFiles/mini_kv_server.dir
-C:/Users/28251/Desktop/my-learning-project/learned/mini_kv_server/mini_kv_server/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/28251/Desktop/my-learning-project/learned/mini_kv_server/mini_kv_server/build/CMakeFiles/ZERO_CHECK.dir

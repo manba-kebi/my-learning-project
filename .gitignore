@@ -10,3 +10,5 @@
 *.log
 *.tlog
 *.lastbuildstate
+
+learned/mini_kv_server/mini_kv_server/build/
