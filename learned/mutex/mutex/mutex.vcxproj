@@ -129,6 +129,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="recursive_mutex.cpp" />
     <ClCompile Include="scoped_lock.cpp" />
+    <ClCompile Include="shared_mutex.cpp" />
     <ClCompile Include="unique_mutex.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

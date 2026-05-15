@@ -33,5 +33,8 @@
     <ClCompile Include="condition_variable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="shared_mutex.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -269,6 +269,134 @@ std::thread 线程对象(指向成员函数的指针, 指向对象的指针, 参
 
 
 
+## STD::shared_mutex
+
+定义在头部 `<shared_mutex>`
+
+```c++
+class shared_mutex;
+```
+
+`shared_mutex`类是一种同步原语，可用于保护共享数据，防止多个线程同时对其进行访问。与其他支持独占访问的互斥量类型不同，**`shared_mutex`具有两级访问权限**：
+
+- 共享(*shared*) - 多个线程可以共享同一个互斥锁的所有权。
+- 互斥(*exclusive*) - 只有一个线程可以拥有互斥锁。
+
+**如果一个线程已经获取了互斥锁（通过 `lock`、`try_lock`），则其他线程无法获取该锁（包括共享线程）。**
+
+**如果一个线程已经获取了共享锁（通过lock_shared、try_lock_shared），则其他线程无法获取独占锁，但可以获取共享锁。**
+
+只有当互斥锁未被任何线程获取时，共享锁才能被多个线程获取。
+
+在一个线程中，同一时间只能获取一个锁（共享锁或互斥锁）。
+
+**当共享数据可以被任意数量的线程同时安全读取**，但一个线程只有在没有其他线程同时进行读取或写入时才能写入相同的数据时，共享互斥锁特别有用。
+
+`shared_mutex`类满足[*SharedMutex*](https://www.cppreference.com/cpp/named_req/SharedMutex)和[*StandardLayoutType*](https://www.cppreference.com/cpp/named_req/StandardLayoutType)的所有要求。
+
+### Member types
+
+|             Member type              |  Definition  |
+| :----------------------------------: | :----------: |
+| **`native_handle_type` (optional*)** | **实现定义** |
+
+### Member functions
+
+| **[(constructor)](https://www.cppreference.com/cpp/thread/shared_mutex/shared_mutex)** | **构造互斥锁 （公有成员函数）**  |
+| :----------------------------------------------------------: | :------------------------------: |
+| **[(destructor)](https://www.cppreference.com/cpp/thread/shared_mutex/~shared_mutex)** |  **销毁互斥量（公有成员函数）**  |
+|                    **operator=[deleted]**                    | **不可复制赋值（公有成员函数）** |
+
+#### Exclusive locking
+
+| **[lock](https://www.cppreference.com/cpp/thread/shared_mutex/lock)** |   **锁定互斥量，若互斥量不可用则阻塞 （公有成员函数）**    |
+| :----------------------------------------------------------: | :--------------------------------------------------------: |
+| **[try_lock](https://www.cppreference.com/cpp/thread/shared_mutex/try_lock)** | **尝试锁定互斥量，如果互斥量不可用则返回（公有成员函数）** |
+| **[unlock](https://www.cppreference.com/cpp/thread/shared_mutex/unlock)** |               **解锁互斥锁（公有成员函数）**               |
+
+#### Shared locking
+
+| **[lock_shared](https://www.cppreference.com/cpp/thread/shared_mutex/lock_shared)** | **锁定共享所有权的互斥锁，如果互斥锁不可用则阻塞 （公有成员函数）** |
+| :----------------------------------------------------------: | :----------------------------------------------------------: |
+| **[try_lock_shared](https://www.cppreference.com/cpp/thread/shared_mutex/try_lock_shared)** | **尝试锁定互斥量以实现共享所有权，如果互斥量不可用则返回（公有成员函数）** |
+| **[unlock_shared](https://www.cppreference.com/cpp/thread/shared_mutex/unlock_shared)** |         **解锁互斥锁（共享所有权）（公有成员函数）**         |
+
+#### Native handle(原生句柄)
+
+| [native_handle](https://www.cppreference.com/cpp/thread/shared_mutex/native_handle) | 返回底层实现定义的原生句柄对象（公有成员函数） |
+| :----------------------------------------------------------: | :--------------------------------------------: |
+
+
+
+### 示例
+
+```c++
+#include <iostream>
+#include <shared_mutex>
+#include <thread>
+#include <mutex>
+#include <syncstream>
+
+class ThreadSafeCounter {
+public:
+	ThreadSafeCounter() = default;
+
+	//多个线程 / 读取器可以同时读取计数器的值。
+	unsigned int get() const {
+		std::shared_lock lock(mutex_);
+		return value_;
+	}
+
+	// 只有一个线程/写入器可以增加/写入计数器的值。
+	void increment() {
+		std::unique_lock lock(mutex_);
+		++value_;
+	}
+
+	//只有一个线程/写入器可以重置/写入计数器的值。
+	void reset() {
+		std::unique_lock lock(mutex_);
+		value_ = 0;
+	}
+
+private:
+	mutable std::shared_mutex mutex_;
+	unsigned int value_{};
+};
+
+int main() {
+	ThreadSafeCounter counter;
+
+	auto increment_and_print = [&counter]() {
+		for (int i{}; i != 3; ++i) {
+			counter.increment();
+			std::osyncstream(std::cout)
+				<< std::this_thread::get_id() << ' ' << counter.get() << '\n';
+		}
+		};
+
+	std::thread thread1(increment_and_print);
+	std::thread thread2(increment_and_print);
+
+	thread1.join();
+	thread2.join();
+}
+```
+
+![image-20260515162348354](C:\Users\28251\AppData\Roaming\Typora\typora-user-images\image-20260515162348354.png)
+
+#### **`std::shared_lock<std::shared_mutex> lock(mutex_);`**与**`std::shared_lock lock(mutex_);`**的区别
+
+- **`std::shared_lock<std::shared_mutex> lock(mutex_);`**
+
+  显式指定 `shared_lock` 的模板参数为 `std::shared_mutex`。它要求 `mutex_` 的类型**严格匹配** `std::shared_mutex&`。 
+
+- **`std::shared_lock lock(mutex_);`**
+
+  使用 C++17 引入的 **类模板实参推导（CTAD）**，编译器根据 `mutex_` 的类型自动推导出 `shared_lock` 的模板参数。`mutex_` 是什么类型，推导结果就是什么类型（比如 `std::shared_mutex`、`std::shared_timed_mutex` 等）。
+
+
+
 ## std::lock_guard
 
 定义在头部  `<mutex>`
@@ -596,6 +724,71 @@ lock(lock1, lock2);
 - **因为灵活，所以有代价**：功能更多，也意味着它在内存占用和执行效率上比简单的 `lock_guard` 要稍微高一点。
 
 简单来说：**能用 `lock_guard` 搞定的简单场景就用 `lock_guard`，但一旦需要延迟锁定、配合条件变量或转移所有权，就必须用 `unique_lock`**。
+
+
+
+## std::shared_lock
+
+Defined in header `<shared_mutex>`
+
+```c++
+template< class Mutex >
+class shared_lock;
+```
+
+`shared_lock`类是一个通用的共享互斥量所有权包装器，支持延迟锁定、定时锁定和锁定所有权的转移。**锁定shared_lock会以共享模式锁定相关的共享互斥量（若要以独占模式锁定，可使用`std::unique_lock`）。**
+
+**`shared_lock`类是可移动的，但不可复制的**——它满足[*MoveConstructible*](https://www.cppreference.com/cpp/named_req/MoveConstructible)和[*MoveAssignable*](https://www.cppreference.com/cpp/named_req/MoveAssignable)的要求，但不满足[*CopyConstructible*](https://www.cppreference.com/cpp/named_req/CopyConstructible)或 [*CopyAssignable*](https://www.cppreference.com/cpp/named_req/CopyAssignable)的要求。
+
+`shared_lock`满足[*Lockable*](https://www.cppreference.com/cpp/named_req/Lockable)要求。如果`Mutex`满足 [*SharedTimedLockable*](https://www.cppreference.com/cpp/named_req/SharedTimedLockable)要求，则`shared_lock`也满足 [*TimedLockable*](https://www.cppreference.com/cpp/named_req/TimedLockable)要求。
+
+**为了在共享所有权模式下等待共享互斥量，可以使用`std::condition_variable_any`**（`std::condition_variable`需要`std::unique_lock`，因此只能在独占所有权模式下等待）。
+
+
+
+### 模板参数
+
+Mutex -  要锁定的共享互斥体的类型。该类型必须满足[*SharedLockable*](https://www.cppreference.com/cpp/named_req/SharedLockable)要求
+
+### Member types
+
+|     Type     | Definition |
+| :----------: | :--------: |
+| `mutex_type` |  `Mutex`   |
+
+### Member functions
+
+| **[(constructor)](https://www.cppreference.com/cpp/thread/shared_lock/shared_lock)** | **构造一个`shared_lock`，可选择是否锁定提供的互斥锁（公共成员函数）** |
+| :----------------------------------------------------------: | :----------------------------------------------------------: |
+| **[(destructor)](https://www.cppreference.com/cpp/thread/shared_lock/~shared_lock)** |             **解锁关联的互斥锁（公共成员函数）**             |
+| **[operator=](https://www.cppreference.com/cpp/thread/shared_lock/operator%3D)** | **如果拥有互斥锁，则解锁该互斥锁，并获取另一个互斥锁的所有权（公共成员函数）** |
+
+#### Shared locking
+
+| **[lock](https://www.cppreference.com/cpp/thread/shared_lock/lock)** |            **锁定关联的互斥锁（公共成员函数）**            |
+| :----------------------------------------------------------: | :--------------------------------------------------------: |
+| **[try_lock](https://www.cppreference.com/cpp/thread/shared_lock/try_lock)** |         **尝试锁定相关联的互斥锁（公共成员函数）**         |
+| **[try_lock_for](https://www.cppreference.com/cpp/thread/shared_lock/try_lock_for)** | **尝试在指定的持续时间内锁定相关的互斥锁（公共成员函数）** |
+| **[try_lock_until](https://www.cppreference.com/cpp/thread/shared_lock/try_lock_until)** | **尝试锁定关联的互斥锁，直到指定的时间点（公共成员函数）** |
+| **[unlock](https://www.cppreference.com/cpp/thread/shared_lock/unlock)** |            **解锁关联的互斥锁（公共成员函数）**            |
+
+#### Modifiers
+
+| **[swap](https://www.cppreference.com/cpp/thread/shared_lock/swap)** | **用另一个`shared_lock`来交换数据成员（公共成员函数）** |
+| :----------------------------------------------------------: | :-----------------------------------------------------: |
+| **[release](https://www.cppreference.com/cpp/thread/shared_lock/release)** |        **互斥锁解关联而不解锁（公共成员函数）**         |
+
+#### Observers
+
+| **[mutex](https://www.cppreference.com/cpp/thread/shared_lock/mutex)** |  **返回一个指向相关互斥锁的指针（公共成员函数）**   |
+| :----------------------------------------------------------: | :-------------------------------------------------: |
+| **[owns_lock](https://www.cppreference.com/cpp/thread/shared_lock/owns_lock)** | **测试该锁是否拥有其关联的互斥量（公共成员函数）**  |
+| **[operator bool](https://www.cppreference.com/cpp/thread/shared_lock/operator_bool)** | **测试该锁是否拥有其关联的互斥量 （公共成员函数）** |
+
+### Non-member functions
+
+| [std::swap(std::shared_lock)](https://www.cppreference.com/cpp/thread/shared_lock/swap2)(C++14) | 专用于std::swap算法（函数模板） |
+| :----------------------------------------------------------: | :-----------------------------: |
 
 
 
