@@ -1,4 +1,6 @@
 # Visual Studio 缓存与临时文件（只忽略无用文件，不碰代码）
+x64/
+Debug/
 .vs/
 *.ipch
 *.obj
