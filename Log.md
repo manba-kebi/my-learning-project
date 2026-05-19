@@ -138,3 +138,13 @@
     - 所以每个线程最终必须join()或者detach()，工程中更常用join()
     - std::thread 参数默认会拷贝，如果需要传引用需要std::ref()
     - mini_kv_server 的线程池内部保存多个std::thread，析构时统一join()
+
+
+
+
+
+## 2026年5月19日
+
+- 今天主要准备了计算机省赛的答辩，针对使用到的技术如迭代加深、静态搜索、alpha-beta剪枝、置换表等相关代码做了讲解。
+- 复习了mutex、条件变量、TCP，CMake语法、GDB调试常用语句以及怎么打断点、针对bug的逐步调试
+- 设计了一个简单的烟雾测试脚本`smoke_test.py` ,测试mini_kv_server 中的命令是否能正常跑通一遍
