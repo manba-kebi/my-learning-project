@@ -164,3 +164,8 @@
 - 掌握了在程序崩溃时，使用 core dump 对崩溃现场进行记录，会记录崩溃时的调用栈、寄存器内容、内存部分内容、线程内容等等；使用 bt 对当前崩溃线程进行查看，查看该线程是通过哪些函数一步步调用到当前位置的；使用 frame 用于切换调用栈的某一层，之后查找其附近的代码或局部变量，进行具体分析。
 - 具体内容请见：https://github.com/manba-kebi/mini_kv_server/blob/main/docs/linux_debug_notes.md
 
+
+
+## 2026年5月24日
+
+- 在 mini_kv_server 项目中，新增了对workers/queue/backlog更详细的理解。并新增了在linux中网络状态观察命令 ss 与调用观察命令 strace 的笔记，新增了benchmark 与背压测试相关笔记
