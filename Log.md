@@ -217,7 +217,20 @@
 - 在 log_message.cpp 函数中新增了escape_line_breaks函数，负责对消息中的换行符转换为正常的消息，使一条日志只对应一行内容。完善了log_message记录日志时的格式化文本内容。并且完善了对于log_message的功能测试   
 
 
+
+
 ## 2026年6月17日
 
 - 测试：完善了记录日志的 路径测试 以及 滚动边界的测试
 - 测试：主要优化了 logger_test 的测试，使得更加全面，并且取消了assert的检查，测试涵盖异步日志记录器的生命周期和溢出策略
+
+
+
+## 2026年6月18日
+
+以下均为asynclogger项目的内容：
+
+- 优化了 async_logger 的主循环 worker_loop ，防止后台写入异常，从而终止进程
+- 验证了debug 配置与 release 配置能否都能正常构建
+- 添加了CI文件，在 Ubuntu 和 Windows 上进行构建和测试
+- 修改并完善了 README 文件的内容。
