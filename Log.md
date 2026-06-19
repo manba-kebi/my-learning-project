@@ -234,3 +234,10 @@
 - 验证了debug 配置与 release 配置能否都能正常构建
 - 添加了CI文件，在 Ubuntu 和 Windows 上进行构建和测试
 - 修改并完善了 README 文件的内容。
+
+
+
+## 2026年6月19日
+
+- 针对async_logger项目：优化了基准测试benchmark，CMakeList中添加了benchmark相关的编译选项，完善了docs中的说明文档
+- 正在尝试将 mini_kv_server 的log输出替换为 async_logger 的异步日志记录。现在已经在 CMakeLists 中固定拉取 async_logger，能够链接 asynclogger::asynclogger。并且已经完成了用 async_logger 进行服务器诊断了。明天准备验证本地覆盖构建、真实 GitHub 拉取构建、运行日志文件、依赖边界。
