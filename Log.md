@@ -263,3 +263,10 @@
 
 - 针对优化mini_kv_server项目，今天先优化了烟雾测试smoke_test，可以手动输入参数、自己等待端口就绪，并将smoke_test纳入Linux CI中，并且跑通了。
 - 正在升级benchmark，目前方向是优化成能输出 QPS 和 p95
+
+
+
+## 2026年 6月23日
+
+- 针对mini_kv_server项目，完成了基准测试 benchmark 的优化，在benchmark中添加了延迟百分数p95、p99，使得测试更加全面。
+- 同时新增了run_benchmark_matrix文件，对服务器进行了多维度压测。并将测试结果记录于 /docs/benchmark_notes.md 结尾部分。
