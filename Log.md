@@ -270,3 +270,11 @@
 
 - 针对mini_kv_server项目，完成了基准测试 benchmark 的优化，在benchmark中添加了延迟百分数p95、p99，使得测试更加全面。
 - 同时新增了run_benchmark_matrix文件，对服务器进行了多维度压测。并将测试结果记录于 /docs/benchmark_notes.md 结尾部分。
+
+
+
+## 2026年6月24日
+
+- 收到临时通知，后天要面试一家外企，我需要准备面试口语 以及 准备运维相关知识（linux、sql、云）
+- 以及下周三（7月1日）、有期末考试（软件工程），所以mini_kv_server 项目的优化暂时先搁置
+- mini_kv_server 优化方向是将阻塞IO 转化为 非阻塞IO。（暂时是这么定的）
