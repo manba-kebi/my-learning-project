@@ -108,3 +108,35 @@ int main() {
 
 补充说明：
 *这里的al=10;语句实际上包含了隐式类型转换，编译器会先将整数10转换为A类型的临时对象，再进行赋值操作。这是C++中常见的对象赋值过程，涉及到临时对象的创建和赋值运算符的调用。理解这个过程对于掌握C++的对象操作非常重要。*
+
+
+
+## strcpy
+
+strcpy执行时，会自动在复制后的字符串上添加 '\0'
+
+下面代码的执行结果是什么：
+
+```c++
+char ccString1[]="Is Page Fault??";
+char ccString2[]="No Page Fault??";
+strcpy(ccString1,"No");
+if(strcmp(ccString1,ccString2)==0)
+   cout<<ccString2;
+else
+   cout<<ccString1;
+```
+
+答案：**No**
+
+strcpy执行时，会自动在复制后的字符串上添加‘\0’，所以复制完成之后ccString1变为 "No\0Page Fault??"  
+
+strcmp 比较两个字符串，设这两个字符串为str1，str2
+
+- 若str1==str2，则返回零； 
+
+- 若str1>str2，则返回正数； 
+
+- 若str1<str2，则返回负数
+
+由于比较结果不相等，执行else分支，所以答案是**"No"**
